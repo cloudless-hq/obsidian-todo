@@ -1,0 +1,5 @@
+{
+  "tasks": {
+    "build": "deno run --allow-read=.,/Users/jan/Library/Caches/esbuild/bin/@esbuild-darwin-arm64@0.17.8 --allow-run=/Users/jan/Library/Caches/esbuild/bin/@esbuild-darwin-arm64@0.17.8 --allow-env --allow-write=./styles.css esbuild.js"
+  }
+}
