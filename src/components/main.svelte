@@ -6,12 +6,27 @@
   export let dataView
   export let reload
 
-  let parentEntries = []
+  const open = {}
+  let entries
+  let grouped
   let projects = []
 
   // TODO: debounce
   reload(() => {
-    parentEntries = dataView.pages().file.lists.filter(entry => !entry.parent)
+    entries = dataView.pages().file.lists.filter(entry => !entry.parent)
+    grouped = entries.groupBy(entry => entry.header.path).map(group =>  ({key: group.key, rows: group.rows.groupBy(row => row.header.subpath) }))
+
+    // .groupBy(row => { console.log(row); return row. }) // ).map(group => group.rows.
+    //
+    console.log(grouped)
+    // entries = parentEntries.reduce((entry, aggr) => {
+    //   if (!entries[entry.header.path]) {
+    //     entries[entry.header.path] = {}
+    //   }
+    //   if (!entries[entry.header.path][entry.header.subpath]) {
+    //     entries[entry.header.path][entry.header.subpath] = {}
+    //   }
+    // }, {})
     projects = dataView.pages().where(entry => entry.type === 'project').values.map(project => ({title: project.file.name}))
   })
 
@@ -58,8 +73,7 @@
 <style>
   :global(.workspace-leaf-content[data-type='todo-view'] .view-content) {
     background-color: #f9f9f9;
-    padding-left: 0;
-    padding-top: 0;
+    padding: 0;
   }
   :global(.workspace-leaf-content[data-type='todo-view'] .view-header) {
     border-bottom: 1px solid #f1f1f1;
@@ -84,22 +98,59 @@
   :global(.ayu_components_sidebar) {
     font-size: 14px;
   }
+  h3 {
+    margin-block-end: 0;
+    margin-left: 0.25rem;
+    margin-bottom: 11px;
+    font-size: 18px;
+    color: #363636;
+  }
+  h4 {
+    margin-block-start: 15px;
+    margin-block-end: 12px;
+    font-size: 15px;
+    color: #757575;
+    margin-left: 0.25rem;
+  }
 </style>
 
 <SidebarLayout top="0" height="100%" sideWidth="240px">
   <Sidebar slot="sidebar" active={activeView} {badges} {projects} on:select={sideBarSelect} />
 
   <div slot="main" class="main p-8">
-    {#each parentEntries as entry}
-      <Todo data={parseDataViewItem(entry)} on:click={() => {console.log(entry)}}></Todo>
+    {#each grouped as fileRow}
+      <h3>{@html fileRow.key.replace('.md', '').split('/').join(' <div class="text-gray-400 inline">/</div> ')}</h3>
+      {#each fileRow.rows.find(row => row.key === undefined)?.rows || [] as entry, i}
+        <Todo open={open[i]} data={parseDataViewItem(entry)} on:dblclick={() => { open[i] = true}} on:click={() => {console.log(entry)}}></Todo>
 
-      <!-- {#if entry.children}
-        <div class="ml-6">
-          {#each entry.children as child}
-            <Todo data={parseDataViewItem(child)}></Todo>
+        {#if open[i] && entry.children}
+          <div class="ml-6">
+            {#each entry.children as child}
+              <Todo data={parseDataViewItem(child)} on:click={() => {console.log(entry)}}></Todo>
+            {/each}
+          </div>
+        {/if}
+      {/each}
+
+
+      {#each fileRow.rows as headerRow}
+        {#if headerRow.key !== undefined}
+          <h4>{headerRow.key}</h4>
+          {#each headerRow.rows as entry, i}
+            <Todo open={open[i]} data={parseDataViewItem(entry)} on:dblclick={() => { open[i] = true}} on:click={() => {console.log(entry)}}></Todo>
+
+            {#if open[i] && entry.children}
+              <div class="ml-6">
+                {#each entry.children as child}
+                  <Todo data={parseDataViewItem(child)} on:click={() => {console.log(entry)}}></Todo>
+                {/each}
+              </div>
+            {/if}
           {/each}
-        </div>
-      {/if} -->
+        {/if}
+      {/each}
     {/each}
+
+    <div class="h-50vh"></div>
   </div>
 </SidebarLayout>
