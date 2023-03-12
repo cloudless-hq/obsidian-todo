@@ -9,6 +9,7 @@
   // TODO: hide completed from current view (keep new completed until klick again)
   // TODO: exclamationmark important tag
   // TODO: convert headline to tag
+  // TODO: collapsible file titles
   // const selectionState = {
   //           eState: {
   //               cursor: {
